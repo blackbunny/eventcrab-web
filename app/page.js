@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   const [artist, setArtist] = useState("");
   const [city, setCity] = useState("");
   const [startDate, setStartDate] = useState(""); // YYYY-MM-DD
   const [endDate, setEndDate] = useState("");     // YYYY-MM-DD
-  const [size, setSize] = useState(20);
   const [page, setPage] = useState(0);
 
   const [loading, setLoading] = useState(false);
@@ -26,9 +26,12 @@ export default function Home() {
       if (startDate) qs.set("startDate", startDate);
       if (endDate) qs.set("endDate", endDate);
       qs.set("page", String(p));
-      qs.set("size", String(size));
-
       const res = await fetch(`/api/events?${qs.toString()}`);
+
+      if(res.status === 404) {
+        throw new Error("Etkinlik bulunamadı");
+      }
+
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err?.error || "API error");
@@ -103,20 +106,7 @@ export default function Home() {
 
           <div className="flex items-center justify-between mt-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-white/70">Page size:</label>
-              <select
-                  value={size}
-                  onChange={(e) => setSize(Number(e.target.value))}
-                  className="bg-gray-800 border border-white/10 px-2 py-1 rounded"
-              >
-                {[10,20,50,100].map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-              <button
-                  onClick={() => { setPage(0); fetchEvents(0); }}
-                  className="text-sm px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 border border-white/10"
-              >
-                Uygula
-              </button>
+              {/* sol taraf */}
             </div>
 
             <div className="text-sm text-white/60">
@@ -130,7 +120,17 @@ export default function Home() {
           <ul className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map((ev) => (
                 <li key={ev.id} className="bg-gray-900 border border-white/10 rounded-xl p-4 hover:border-white/20 transition">
-                  <h3 className="font-semibold text-lg">{ev.name}</h3>
+                  {ev.image && (
+                      <div className="relative w-full h-48">
+                        <Image
+                            src={ev.image}
+                            alt={ev.name}
+                            fill
+                            className="object-cover"
+                        />
+                      </div>
+                  )}
+                  <h3 className="font-semibold text-lg mt-2">{ev.name}</h3>
                   <p className="text-sm text-white/70 mt-1">{ev.date}{ev.time ? ` • ${ev.time}` : ""}</p>
                   <p className="text-sm text-white/60 mt-1">
                     {ev.venue} — {ev.city}{ev.country ? `, ${ev.country}` : ""}

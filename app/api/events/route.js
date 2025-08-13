@@ -17,7 +17,6 @@ export async function GET(req) {
         if (page) qs.set("page", page);
 
         const url = `${process.env.RAPIDAPI_BASE_URL.replace(/\/+$/,'')}/events?${qs.toString()}`;
-
         const res = await fetch(url, {
             headers: {
                 "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
