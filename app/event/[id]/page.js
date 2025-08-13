@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function EventDetailPage({ params }) {
-    const { id } = params;
+    const resolvedParams = React.use(params);
+    const { id } = resolvedParams;
+
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState("");
