@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function EventDetailPage({ params }) {
     const resolvedParams = React.use(params);
@@ -87,12 +88,12 @@ export default function EventDetailPage({ params }) {
                             Bilet/Etkinlik Sayfası
                         </a>
                     )}
-                    <a
+                    <Link
                         href="/"
                         className="px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 border border-white/10"
                     >
                         ← Listeye Dön
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>
