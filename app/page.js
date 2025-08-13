@@ -1,103 +1,172 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [artist, setArtist] = useState("");
+  const [city, setCity] = useState("");
+  const [startDate, setStartDate] = useState(""); // YYYY-MM-DD
+  const [endDate, setEndDate] = useState("");     // YYYY-MM-DD
+  const [size, setSize] = useState(20);
+  const [page, setPage] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [events, setEvents] = useState([]);
+  const [meta, setMeta] = useState({ totalPages: 0, totalElements: 0 });
+
+  const fetchEvents = async (p = page) => {
+    setLoading(true);
+    setError("");
+    try {
+      const qs = new URLSearchParams();
+      if (artist) qs.set("artist", artist);
+      if (city) qs.set("city", city);
+      if (startDate) qs.set("startDate", startDate);
+      if (endDate) qs.set("endDate", endDate);
+      qs.set("page", String(p));
+      qs.set("size", String(size));
+
+      const res = await fetch(`/api/events?${qs.toString()}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || "API error");
+      }
+      const data = await res.json();
+      setEvents(data?.events || []);
+      setMeta({
+        totalPages: data?.totalPages ?? 0,
+        totalElements: data?.totalElements ?? 0,
+      });
+    } catch (e) {
+      setError(String(e.message || e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSearch = (e) => {
+    e.preventDefault();
+    setPage(0);
+    fetchEvents(0);
+  };
+
+  useEffect(() => {
+    // initial load is optional; uncomment to load something by default
+    // fetchEvents(0);
+  }, []);
+
+  const canPrev = page > 0;
+  const canNext = page + 1 < (meta.totalPages || 0);
+
+  return (
+      <div className="min-h-screen bg-gray-950 text-white">
+        <header className="p-6 border-b border-white/10">
+          <h1 className="text-2xl md:text-3xl font-bold">🎵 Global Concert Finder (Demo)</h1>
+          <p className="text-sm text-white/60 mt-1">Artist/City + tarih aralığı ile arayın; sonuçları listeleyin ve detayına gidin.</p>
+        </header>
+
+        <main className="p-6 max-w-6xl mx-auto">
+          <form onSubmit={onSearch} className="grid grid-cols-1 md:grid-cols-5 gap-3 bg-gray-900/60 p-4 rounded-xl border border-white/10">
+            <input
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                placeholder="Artist"
+                className="px-3 py-2 rounded-lg bg-gray-800 border border-white/10 outline-none"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City"
+                className="px-3 py-2 rounded-lg bg-gray-800 border border-white/10 outline-none"
+            />
+            <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-gray-800 border border-white/10 outline-none"
+            />
+            <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-3 py-2 rounded-lg bg-gray-800 border border-white/10 outline-none"
+            />
+            <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[.98] transition"
+            >
+              Ara
+            </button>
+          </form>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-white/70">Page size:</label>
+              <select
+                  value={size}
+                  onChange={(e) => setSize(Number(e.target.value))}
+                  className="bg-gray-800 border border-white/10 px-2 py-1 rounded"
+              >
+                {[10,20,50,100].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+              <button
+                  onClick={() => { setPage(0); fetchEvents(0); }}
+                  className="text-sm px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 border border-white/10"
+              >
+                Uygula
+              </button>
+            </div>
+
+            <div className="text-sm text-white/60">
+              Toplam: {meta.totalElements ?? 0} • Sayfalar: {meta.totalPages ?? 0}
+            </div>
+          </div>
+
+          {loading && <p className="mt-6 text-white/70">Yükleniyor…</p>}
+          {error && <p className="mt-6 text-red-400">{error}</p>}
+
+          <ul className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {events.map((ev) => (
+                <li key={ev.id} className="bg-gray-900 border border-white/10 rounded-xl p-4 hover:border-white/20 transition">
+                  <h3 className="font-semibold text-lg">{ev.name}</h3>
+                  <p className="text-sm text-white/70 mt-1">{ev.date}{ev.time ? ` • ${ev.time}` : ""}</p>
+                  <p className="text-sm text-white/60 mt-1">
+                    {ev.venue} — {ev.city}{ev.country ? `, ${ev.country}` : ""}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <Link href={`/event/${ev.id}`} className="text-blue-400 hover:underline">Detay</Link>
+                    {ev.url && (
+                        <a href={ev.url} target="_blank" rel="noreferrer" className="text-white/70 hover:underline">
+                          Bilet/Liste
+                        </a>
+                    )}
+                  </div>
+                </li>
+            ))}
+          </ul>
+
+          {(meta.totalPages > 1) && (
+              <div className="mt-6 flex justify-center items-center gap-3">
+                <button
+                    disabled={!canPrev}
+                    onClick={() => { const p = page - 1; setPage(p); fetchEvents(p); }}
+                    className={`px-3 py-2 rounded bg-gray-800 border border-white/10 ${!canPrev ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
+                >
+                  ← Önceki
+                </button>
+                <span className="text-white/70 text-sm">Sayfa {page + 1} / {meta.totalPages}</span>
+                <button
+                    disabled={!canNext}
+                    onClick={() => { const p = page + 1; setPage(p); fetchEvents(p); }}
+                    className={`px-3 py-2 rounded bg-gray-800 border border-white/10 ${!canNext ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-700"}`}
+                >
+                  Sonraki →
+                </button>
+              </div>
+          )}
+        </main>
+      </div>
   );
 }
