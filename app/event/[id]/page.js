@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function EventDetailPage({ params }) {
     const resolvedParams = React.use(params);
@@ -21,6 +22,7 @@ export default function EventDetailPage({ params }) {
                     throw new Error(e?.error || "API error");
                 }
                 const data = await res.json();
+                console.log(data);
                 setEvent(data);
             } catch (e) {
                 setErr(String(e.message || e));
@@ -41,6 +43,16 @@ export default function EventDetailPage({ params }) {
     return (
         <div className="min-h-screen bg-gray-950 text-white p-6">
             <div className="max-w-3xl mx-auto bg-gray-900 border border-white/10 rounded-xl p-6">
+                {event.image && (
+                    <div className="relative w-full h-96 mb-4">
+                        <Image
+                            src={event.image.url}
+                            alt={event.name}
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+                )}
                 <h1 className="text-2xl md:text-3xl font-bold">{event.name}</h1>
                 <p className="text-white/70 mt-2">
                     {event?.dates?.start?.localDate}
